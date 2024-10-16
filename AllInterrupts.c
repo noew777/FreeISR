@@ -30,6 +30,16 @@ int main() {
 }
 
 //
+// Configure IO ports
+//
+void setUpIO(void){
+  //    Config Port D 
+  //- PIN2 (input, pullup)
+  DDRB |= (0x20); // 1output
+  PORTD |= (0x04);  // 1pull-up
+}
+
+//
 // Configure interrupts
 //
 void setUpInterrupts(uint8_t  *ISTstate){
@@ -48,6 +58,8 @@ void setUpInterrupts(uint8_t  *ISTstate){
   PCIFR &= ~(1 << PCIF2 | 1 << PCIF1 | 1 << PCIF0);
 }
 
+
+// here the code must check that the port is configured as input1!!!!!
 void setUpAnyInterrupt(uint8_t  *ISTstate){
   volatile unsigned int *maskReg = (volatile unsigned int *)0x6d; // PCMSK2 address
   //volatile unsigned int *maskReg = (volatile unsigned int *) (*PCMSK2); NOEE TRY THIS ONE PLS
@@ -61,28 +73,33 @@ void setUpAnyInterrupt(uint8_t  *ISTstate){
   }
 }
 
-//
-// Configure IO ports
-//
-void setUpIO(void){
-  //    Config Port D 
-  //- PIN2 (input, pullup)
-  DDRB |= (0x20); // 1output
-  PORTD |= (0x04);  // 1pull-up
+void updateGlobalInterrupts(uint8_t setGinterrupts){
+    if(setUpAnyInterrupt == 1)
+        SREG |= (0x80); // Enable global interrupts
+    else if(setUpAnyInterrupt == 0)
+        SREG &= ~(0x80); // Disable global interrupts
 }
+
+
 
 /****************************************************
     INTERRUPTIONS SERVICES ROUTINES FOR ALL PINES
 *****************************************************/
 
+// Aqui seguramente lo mas guay es que te fabriques un array con *funciones
+// y que segun la interrupcion que sea llames a una u otra. El usuario deberia
+// poder decirle al sistema que se ha creado una funcion para tal pin, y mandarle un
+// puntero que apunte a esta última.
+
 //
 // ISR handler for PC[23-16]
 //
 ISR(PCINT2_vect){
-  if(PIND & 0x04)
-    PINB |= (0x20); // Toggles PB5(Pin 13)
-  else
-    PINB &= ~(0x20);
+    for(int i = 0; i < 8; i++){
+        //si esta activada su mascara ISTstate...
+            //comprobamos estado y si ha cambiado...
+                //ejecutamos su callback del array de funciones "ISR"
+    }
 }
 
 //
